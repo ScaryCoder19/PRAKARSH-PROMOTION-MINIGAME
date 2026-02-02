@@ -2,8 +2,8 @@
 const CONFIG = {
     TOTAL_QUESTIONS: 8,
     FOLDERS: {
-        dialogues: { path: 'assets/dialogues/', count: 45, label: 'Dialogue' },
-        logos: { path: 'assets/logos/', count: 28, label: 'Logo' },
+        dialogues: { path: 'assets/dialogues/', count: 44, label: 'Dialogue' },
+        logos: { path: 'assets/logos/', count: 36, label: 'Logo' },
         memes: { path: 'assets/memes/', count: 31, label: 'Meme' }
     },
     IMAGE_EXTENSIONS: ['.jpg', '.jpeg', '.png', '.gif', '.webp']
