@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="PRAKARSH '26 - Interactive Game Challenge">
+    <title>PRAKARSH '26 | Game Challenge</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Background Animation -->
+    <div class="area" >
+        <ul class="circles">
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+        </ul>
+    </div >
+
+    <!-- Landing Screen -->
+    <div id="landing-screen" class="screen active">
+        <div class="landing-content">
+            <div class="logo-container">
+                <div class="glow-circle"></div>
+                <h1 class="main-title">
+                    <span class="title-line">PRAKARSH '26</span>
+                </h1>
+            </div>
+            
+            <div class="tagline">
+                <p>Test Your Knowledge</p>
+                <p class="subtitle">Guess the Dialogue • Logo • Meme</p>
+            </div>
+            
+            <button class="btn-primary start-btn" id="start-game-btn">
+                <span class="btn-text">START GAME</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Game Screen -->
+    <div id="game-screen" class="screen">
+        <div class="game-header">
+            <div class="header-top">
+                <div class="brand">PRAKARSH '26</div>
+                <div class="header-right">
+                    <div class="question-counter">
+                        <span id="question-number">1</span> / 8
+                    </div>
+                    <div class="score-display">
+                        <span class="score-label">Score:</span>
+                        <span class="score-value" id="current-score">0/0</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="game-content">
+            <div class="image-container">
+                <div class="image-frame">
+                    <img id="game-image" src="" alt="Game Question">
+                </div>
+                <div class="category-badge" id="category-badge">Loading...</div>
+            </div>
+
+            <div class="controls-container">
+                <div class="instruction-text">
+                    <p>🎤 Participant answers verbally</p>
+                </div>
+                
+                <div class="button-group">
+                    <button class="game-btn btn-wrong" id="wrong-btn">
+                        <span class="btn-icon">✕</span>
+                        <span class="btn-label">WRONG</span>
+                    </button>
+                    
+                    <button class="game-btn btn-undo" id="undo-btn" disabled>
+                        <span class="btn-icon">↶</span>
+                        <span class="btn-label">UNDO</span>
+                    </button>
+                    
+                    <button class="game-btn btn-correct" id="correct-btn">
+                        <span class="btn-icon">✓</span>
+                        <span class="btn-label">CORRECT</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Result Screen -->
+    <div id="result-screen" class="screen">
+        <div class="result-content">
+            <div class="celebration-container" id="celebration">
+                <div class="confetti"></div>
+                <div class="confetti"></div>
+                <div class="confetti"></div>
+                <div class="confetti"></div>
+                <div class="confetti"></div>
+            </div>
+            
+            <div class="result-header">
+                <h2 class="result-title">GAME COMPLETE!</h2>
+                <p class="result-subtitle">Here's your score</p>
+            </div>
+            
+            <div class="score-circle-container">
+                <svg class="score-circle" viewBox="0 0 200 200">
+                    <defs>
+                        <linearGradient id="scoreGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#00f0ff;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#b000ff;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                    <circle class="score-circle-bg" cx="100" cy="100" r="90"></circle>
+                    <circle class="score-circle-progress" id="score-circle-progress" cx="100" cy="100" r="90"></circle>
+                </svg>
+                <div class="score-percentage-container">
+                    <div class="score-percentage" id="final-score">0%</div>
+                    <div class="score-details" id="score-details">0/8 Correct</div>
+                </div>
+            </div>
+            
+            <div class="performance-message" id="performance-message">
+                <p>Keep practicing!</p>
+            </div>
+            
+            <button class="btn-primary restart-btn" id="restart-btn">
+                <span class="btn-text">PLAY AGAIN</span>
+            </button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
