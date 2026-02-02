@@ -2,8 +2,8 @@
 const CONFIG = {
     TOTAL_QUESTIONS: 8,
     FOLDERS: {
-        dialogues: { path: 'assets/dialogues/', count: 50, label: 'Dialogue' },
-        logos: { path: 'assets/logos/', count: 50, label: 'Logo' },
+        dialogues: { path: 'assets/dialogues/', count: 45, label: 'Dialogue' },
+        logos: { path: 'assets/logos/', count: 28, label: 'Logo' },
         memes: { path: 'assets/memes/', count: 31, label: 'Meme' }
     },
     IMAGE_EXTENSIONS: ['.jpg', '.jpeg', '.png', '.gif', '.webp']
@@ -53,7 +53,8 @@ let gameState = {
 const screens = {
     landing: document.getElementById('landing-screen'),
     game: document.getElementById('game-screen'),
-    result: document.getElementById('result-screen')
+    result: document.getElementById('result-screen'),
+    wheel: document.getElementById('wheel-screen')
 };
 
 const elements = {
@@ -256,6 +257,156 @@ function stopConfetti() {
     }
 }
 
+// === WHEEL CONFIGURATION ===
+const WHEEL_CONFIG = {
+    segments: [
+        { label: '5%', color: '#00f0ff', probability: 0.38 },
+        { label: '6%', color: '#b000ff', probability: 0.38 },
+        { label: '8%', color: '#00ff88', probability: 0.24 }
+    ],
+    // Repeat segments to make the wheel look fuller (e.g. 6 slices)
+    // We will alternate them. 
+    fullSegments: [] 
+};
+
+// Generate full segments array for display (e.g., repeating the pattern twice for 6 slices)
+// Probabilities are handled logically, visual slices are just for display.
+function initWheelSegments() {
+    WHEEL_CONFIG.fullSegments = [
+        { label: '5%', color: '#00eeff70', value: '5% Discount' },
+        { label: '6%', color: '#391b7e70', value: '6% Discount' },
+        { label: '8%', color: '#00ff8870', value: '8% Discount' },
+        { label: '5%', color: '#00eeff70', value: '5% Discount' },
+        { label: '6%', color: '#391b7e70', value: '6% Discount' },
+        { label: '8%', color: '#00ff8870', value: '8% Discount' }
+    ];
+}
+initWheelSegments();
+
+let wheelState = {
+    rotation: 0,
+    isSpinning: false,
+    hasSpun: false
+};
+
+// === WHEEL FUNCTIONS ===
+
+function drawWheel() {
+    const canvas = document.getElementById('bonus-wheel');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const width = canvas.width;
+    const height = canvas.height;
+    const centerX = width / 2;
+    const centerY = height / 2;
+    const radius = width / 2 - 10;
+    const segments = WHEEL_CONFIG.fullSegments;
+    const arc = (Math.PI * 2) / segments.length;
+
+    ctx.clearRect(0, 0, width, height);
+    
+    // Draw Segments
+    segments.forEach((segment, i) => {
+        const angle = i * arc;
+        ctx.beginPath();
+        ctx.fillStyle = segment.color;
+        ctx.moveTo(centerX, centerY);
+        ctx.arc(centerX, centerY, radius, angle, angle + arc);
+        ctx.lineTo(centerX, centerY);
+        ctx.fill();
+        ctx.stroke();
+
+        // Draw Text
+        ctx.save();
+        ctx.translate(centerX, centerY);
+        ctx.rotate(angle + arc / 2);
+        ctx.textAlign = "right";
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "bold 20px Poppins";
+        ctx.fillText(segment.label, radius - 20, 10);
+        ctx.restore();
+    });
+
+    // Draw Outer Ring
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+    ctx.lineWidth = 5;
+    ctx.strokeStyle = '#000000';
+    ctx.stroke();
+    
+   
+}
+
+function spinTheWheel() {
+    if (wheelState.isSpinning || wheelState.hasSpun) return;
+    
+    wheelState.isSpinning = true;
+    document.getElementById('spin-btn').disabled = true;
+    
+    // Determine the result based on probability
+    const rand = Math.random();
+    let cumulativeProbability = 0;
+    let selectedTypeIndex = 0;
+    
+    // Logic for Probabilities: 5% (0.37), 6% (0.37), 8% (0.26)
+    // We map this to our 6 slices logic. 
+    // Slices 0, 3 are 5%
+    // Slices 1, 4 are 6%
+    // Slices 2, 5 are 8%
+    
+    let winningBaseIndex = 0; // 0, 1, or 2
+    
+    if (rand < 0.37) {
+        winningBaseIndex = 0; // 5%
+    } else if (rand < 0.37 + 0.37) {
+        winningBaseIndex = 1; // 6%
+    } else {
+        winningBaseIndex = 2; // 8%
+    }
+    
+    // Randomly choose one of the two slices for that prize to add variety
+    const winningSliceIndex = winningBaseIndex + (Math.random() < 0.5 ? 0 : 3);
+    const winningSegment = WHEEL_CONFIG.fullSegments[winningSliceIndex];
+    
+    // Calculate rotation
+    // We need to land on the chosen slice. The pointer is at the top (270 degrees or -90 degrees).
+    // In our drawing, 0 radians is at 3 o'clock. 
+    // Top is 3 * PI / 2.
+    
+    const sliceAngle = (Math.PI * 2) / WHEEL_CONFIG.fullSegments.length; // 60 degrees
+    
+    // Target angle to rotate TO
+    // We want the center of the winning slice to align with 3 * PI / 2 (270 deg)
+    // The center of slice i is at: i * sliceAngle + sliceAngle / 2
+    // So we want: rotation + (i * sliceAngle + sliceAngle / 2) = 3 * PI / 2 + 2 * PI * K
+    
+    // Simpler way: add many rotations + offset
+    const spins = 5;
+    const degreesPerSlice = 360 / WHEEL_CONFIG.fullSegments.length;
+    
+    // The winning index 'i' starts at 'i * 60'. To bring it to top (270), we rotate:
+    // 270 - (center of slice)
+    // Center of slice in current rotation: (winningSliceIndex * 60 + 30)
+    // Delta needed: 270 - (winningSliceIndex * 60 + 30)
+    
+    const targetRotation = 270 - (winningSliceIndex * degreesPerSlice + degreesPerSlice / 2);
+    const totalRotation = 360 * spins + targetRotation;
+    
+    const canvas = document.getElementById('bonus-wheel');
+    canvas.style.transform = `rotate(${totalRotation}deg)`;
+    
+    setTimeout(() => {
+        wheelState.isSpinning = false;
+        wheelState.hasSpun = true;
+        const resultDiv = document.getElementById('spin-result');
+        resultDiv.textContent = `You won: ${winningSegment.value}!`;
+        // Confetti again!
+        startConfetti();
+        // Show restart button
+        // document.getElementById('wheel-restart-btn').style.display = 'block';
+    }, 4000); // 4s matches CSS transition
+}
+
 function endGame() {
     const percentage = Math.round((gameState.score / CONFIG.TOTAL_QUESTIONS) * 100);
     
@@ -268,7 +419,34 @@ function endGame() {
     setTimeout(() => {
         animateScore(percentage);
         displayPerformanceMessage(percentage);
+        
+        // Reset wheel entry buttons
+        const claimBtn = document.getElementById('claim-bonus-btn');
+        const restartBtn = document.getElementById('restart-btn');
+        claimBtn.style.display = 'none';
+        restartBtn.style.display = 'block';
+
+        // Check if wheel condition is met (>= 5 questions correct)
+        if (gameState.score >= 5) {
+            claimBtn.style.display = 'block';
+            restartBtn.style.display = 'none'; 
+            // Ensure button is centered (if not handled by CSS)
+            claimBtn.style.margin = '0 auto 1rem auto';
+        }
+        
     }, 400);
+}
+
+function goToWheel() {
+    switchScreen(screens.result, screens.wheel);
+    drawWheel();
+     // Reset wheel state if needed
+     wheelState = { rotation: 0, isSpinning: false, hasSpun: false };
+     document.getElementById('bonus-wheel').style.transform = 'rotate(0deg)';
+     document.getElementById('spin-btn').disabled = false;
+     document.getElementById('spin-result').textContent = '';
+     document.getElementById('wheel-restart-btn').style.display = 'none';
+     stopConfetti(); // Stop previous confetti
 }
 
 function animateScore(targetPercentage) {
@@ -299,7 +477,10 @@ function displayPerformanceMessage(percentage) {
 
 function restartGame() {
     stopConfetti();
-    switchScreen(screens.result, screens.landing);
+    // Check which screen is active to switch from
+    const activeScreen = screens.wheel.classList.contains('active') ? screens.wheel : screens.result;
+    switchScreen(activeScreen, screens.landing);
+    
     setTimeout(() => {
         elements.scoreCircleProgress.style.strokeDashoffset = '565.48';
         elements.finalScore.textContent = '0%';
@@ -312,6 +493,10 @@ elements.restartBtn.addEventListener('click', restartGame);
 elements.correctBtn.addEventListener('click', () => handleAnswer(true));
 elements.wrongBtn.addEventListener('click', () => handleAnswer(false));
 elements.undoBtn.addEventListener('click', handleUndo);
+document.getElementById('spin-btn')?.addEventListener('click', spinTheWheel);
+document.getElementById('claim-bonus-btn')?.addEventListener('click', goToWheel);
+document.getElementById('wheel-restart-btn')?.addEventListener('click', restartGame);
+document.getElementById('spin-btn')?.addEventListener('click', spinTheWheel);
 
 // Fix for iOS "Double Tap to Zoom" delay
 document.addEventListener('touchend', (e) => {

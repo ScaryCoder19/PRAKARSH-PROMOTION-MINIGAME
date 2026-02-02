@@ -136,10 +136,37 @@
             <div class="performance-message" id="performance-message">
                 <p>Keep practicing!</p>
             </div>
+
+            <!-- Button to go to wheel if unlocked -->
+            <button class="btn-primary" id="claim-bonus-btn" style="display: none; background: linear-gradient(45deg, #00f0ff, #b000ff); margin: 0 auto 1rem auto;">
+                <span class="btn-text">🎁 CLAIM BONUS</span>
+            </button>
             
-            <button class="btn-primary restart-btn" id="restart-btn">
+            <button class="btn-primary restart-btn" id="restart-btn" style="margin: 0 auto;">
                 <span class="btn-text">PLAY AGAIN</span>
             </button>
+        </div>
+    </div>
+
+    <!-- Wheel Screen -->
+    <div id="wheel-screen" class="screen">
+        <div class="landing-content wheel-content-wrapper"> <!-- Using landing-content/wrapper for centering -->
+             <div class="wheel-section" id="wheel-section">
+                <h3 class="wheel-title">🎉 BONUS UNLOCKED! 🎉</h3>
+                <p class="wheel-subtitle">Spin for a Combo Discount!</p>
+                <div class="wheel-container">
+                    <div class="wheel-pointer">▼</div>
+                    <canvas id="bonus-wheel" width="300" height="300"></canvas>
+                </div>
+                <button class="btn-primary spin-btn" id="spin-btn">
+                    <span class="btn-text">SPIN TO WIN</span>
+                </button>
+                <div class="spin-result" id="spin-result"></div>
+                
+                <button class="btn-primary restart-btn" id="wheel-restart-btn" style="display: none; margin-top: 1rem;">
+                    <span class="btn-text">PLAY AGAIN</span>
+                </button>
+            </div>
         </div>
     </div>
 
