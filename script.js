@@ -214,8 +214,56 @@ function handleUndo() {
     loadQuestion();
 }
 
+// === CONFETTI ===
+function startConfetti() {
+    const container = document.getElementById('celebration');
+    if (!container) return;
+    
+    // Clear existing
+    container.innerHTML = '';
+    
+    const colors = ['#00f0ff', '#b000ff', '#00ff88', '#ff0055', '#ffffff', '#ffee00'];
+    const confettiCount = 50;
+    
+    for (let i = 0; i < confettiCount; i++) {
+        const confetti = document.createElement('div');
+        confetti.classList.add('confetti');
+        
+        // Random properties
+        const left = Math.random() * 100;
+        const animDuration = 3 + Math.random() * 4; // 3-7s
+        const animDelay = Math.random() * 5; // 0-5s
+        const color = colors[Math.floor(Math.random() * colors.length)];
+        
+        confetti.style.left = `${left}%`;
+        confetti.style.animationDuration = `${animDuration}s`;
+        confetti.style.animationDelay = `${animDelay}s`;
+        confetti.style.backgroundColor = color;
+        
+        // Random size
+        const size = 5 + Math.random() * 10;
+        confetti.style.width = `${size}px`;
+        confetti.style.height = `${size}px`;
+        
+        container.appendChild(confetti);
+    }
+}
+
+function stopConfetti() {
+    const container = document.getElementById('celebration');
+    if (container) {
+        container.innerHTML = '';
+    }
+}
+
 function endGame() {
     const percentage = Math.round((gameState.score / CONFIG.TOTAL_QUESTIONS) * 100);
+    
+    // Only show confetti if score is 40% or higher
+    if (percentage >= 40) {
+        startConfetti();
+    }
+    
     switchScreen(screens.game, screens.result);
     setTimeout(() => {
         animateScore(percentage);
@@ -250,6 +298,7 @@ function displayPerformanceMessage(percentage) {
 }
 
 function restartGame() {
+    stopConfetti();
     switchScreen(screens.result, screens.landing);
     setTimeout(() => {
         elements.scoreCircleProgress.style.strokeDashoffset = '565.48';
