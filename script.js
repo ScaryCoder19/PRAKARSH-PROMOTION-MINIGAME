@@ -260,9 +260,9 @@ function stopConfetti() {
 // === WHEEL CONFIGURATION ===
 const WHEEL_CONFIG = {
     segments: [
-        { label: '5%', color: '#00f0ff', probability: 0.38 },
-        { label: '6%', color: '#b000ff', probability: 0.38 },
-        { label: '8%', color: '#00ff88', probability: 0.24 }
+        { label: '7%', color: '#00f0ff', probability: 0.38 },
+        { label: '8%', color: '#b000ff', probability: 0.38 },
+        { label: '10%', color: '#00ff88', probability: 0.24 }
     ],
     // Repeat segments to make the wheel look fuller (e.g. 6 slices)
     // We will alternate them. 
@@ -273,12 +273,12 @@ const WHEEL_CONFIG = {
 // Probabilities are handled logically, visual slices are just for display.
 function initWheelSegments() {
     WHEEL_CONFIG.fullSegments = [
-        { label: '5%', color: '#00eeff70', value: '5% Discount' },
-        { label: '6%', color: '#391b7e70', value: '6% Discount' },
-        { label: '8%', color: '#00ff8870', value: '8% Discount' },
-        { label: '5%', color: '#00eeff70', value: '5% Discount' },
-        { label: '6%', color: '#391b7e70', value: '6% Discount' },
-        { label: '8%', color: '#00ff8870', value: '8% Discount' }
+        { label: '7%', color: '#00eeff70', value: '7% Discount' },
+        { label: '8%', color: '#391b7e70', value: '8% Discount' },
+        { label: '10%', color: '#00ff8870', value: '10% Discount' },
+        { label: '7%', color: '#00eeff70', value: '7% Discount' },
+        { label: '8%', color: '#391b7e70', value: '8% Discount' },
+        { label: '10%', color: '#00ff8870', value: '10% Discount' }
     ];
 }
 initWheelSegments();
