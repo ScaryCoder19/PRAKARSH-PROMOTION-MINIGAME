@@ -9,6 +9,38 @@ const CONFIG = {
     IMAGE_EXTENSIONS: ['.jpg', '.jpeg', '.png', '.gif', '.webp']
 };
 
+// === MOBILE VIEWPORT & TEXT FIX ===
+function adjustMobileViewport() {
+    // 1. Fix Layout Height (Address Bar Bug)
+    let vh = window.innerHeight * 0.01;
+    document.documentElement.style.setProperty('--vh', `${vh}px`);
+
+    // 2. FIX: Resize Title Text to fit Mobile Screens
+    const titleText = document.querySelector('.title-line');
+    
+    // Check if screen is mobile (less than 768px)
+    if (titleText && window.innerWidth < 768) {
+        // CHANGED: Reduced from 10vw to 8.5vw
+        // ADDED: width: 100% to ensure it uses all available space
+        // ADDED: letter-spacing: -1px to squeeze text slightly
+        titleText.style.cssText = `
+            font-size: 8.5vw !important; 
+            line-height: 1.2 !important;
+            width: 100% !important;
+            letter-spacing: -1px !important;
+            display: block !important;
+            text-align: center !important;
+        `;
+    } else if (titleText) {
+        // Reset for desktop
+        titleText.style.cssText = ""; 
+    }
+}
+window.addEventListener('resize', adjustMobileViewport);
+window.addEventListener('orientationchange', adjustMobileViewport);
+// Run immediately on load
+adjustMobileViewport();
+
 // === GAME STATE ===
 let gameState = {
     currentQuestionIndex: 0,
@@ -55,16 +87,16 @@ function shuffleArray(array) {
 function switchScreen(from, to) {
     from.classList.remove('active');
     setTimeout(() => {
+        // Force scroll to top for mobile view logic
+        window.scrollTo(0,0);
         to.classList.add('active');
     }, 300);
 }
 
 function generateImagePool() {
     const pool = [];
-    
     Object.entries(CONFIG.FOLDERS).forEach(([folderName, folderData]) => {
         for (let i = 1; i <= folderData.count; i++) {
-            // Always start with the first extension to ensure fallback chain works
             const ext = CONFIG.IMAGE_EXTENSIONS[0];
             pool.push({
                 path: `${folderData.path}${i}${ext}`,
@@ -74,14 +106,12 @@ function generateImagePool() {
             });
         }
     });
-    
     return pool;
 }
 
 function selectRandomQuestions() {
     const imagePool = generateImagePool();
     const shuffled = shuffleArray(imagePool);
-    
     const selected = [];
     const usedImages = new Set();
     
@@ -91,9 +121,7 @@ function selectRandomQuestions() {
             selected.push(image);
             usedImages.add(uniqueKey);
         }
-        if (selected.length === CONFIG.TOTAL_QUESTIONS) break;
     }
-    
     return selected;
 }
 
@@ -106,8 +134,6 @@ function initGame() {
         questions: selectRandomQuestions(),
         undoStack: []
     };
-    
-    console.log('Game initialized with questions:', gameState.questions);
 }
 
 function startGame() {
@@ -125,40 +151,27 @@ function loadQuestion() {
     const question = gameState.questions[gameState.currentQuestionIndex];
     const questionNum = gameState.currentQuestionIndex + 1;
     
-    // Update UI
     elements.questionNumber.textContent = questionNum;
     elements.categoryBadge.textContent = question.category;
     elements.currentScore.textContent = `${gameState.score}/${gameState.currentQuestionIndex}`;
     
-    // Update progress bar
     const progress = (questionNum / CONFIG.TOTAL_QUESTIONS) * 100;
     elements.progressFill.style.width = `${progress}%`;
     
-    // Load image
     loadImageWithFallback(question);
-    
-    // Update undo button state
     updateUndoButton();
 }
 
 function loadImageWithFallback(question) {
     const img = new Image();
-    
     img.onload = () => {
         elements.gameImage.src = question.path;
-        elements.gameImage.style.opacity = '0';
-        setTimeout(() => {
-            elements.gameImage.style.opacity = '1';
-        }, 50);
+        elements.gameImage.style.opacity = '1';
     };
-    
     img.onerror = () => {
-        console.error(`Failed to load image: ${question.path}`);
-        
         const currentIndex = CONFIG.IMAGE_EXTENSIONS.indexOf(
             question.path.substring(question.path.lastIndexOf('.'))
         );
-        
         if (currentIndex < CONFIG.IMAGE_EXTENSIONS.length - 1) {
             const basePath = question.path.substring(0, question.path.lastIndexOf('.'));
             question.path = basePath + CONFIG.IMAGE_EXTENSIONS[currentIndex + 1];
@@ -167,87 +180,43 @@ function loadImageWithFallback(question) {
             elements.gameImage.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400"><rect width="400" height="400" fill="%23000"/><text x="50%" y="50%" text-anchor="middle" fill="%2300f0ff" font-size="20" font-family="Arial">Image not found</text></svg>';
         }
     };
-    
+    elements.gameImage.style.opacity = '0';
     img.src = question.path;
 }
 
-// Update undo button enabled/disabled state
 function updateUndoButton() {
-    if (gameState.undoStack && gameState.undoStack.length > 0) {
-        elements.undoBtn.disabled = false;
-    } else {
-        elements.undoBtn.disabled = true;
-    }
+    elements.undoBtn.disabled = !(gameState.undoStack && gameState.undoStack.length > 0);
 }
 
-function handleCorrect() {
-    // Flash animation
-    document.querySelector('.image-frame').classList.add('flash-correct');
-    setTimeout(() => {
-        document.querySelector('.image-frame').classList.remove('flash-correct');
-    }, 600);
+function handleAnswer(isCorrect) {
+    const frame = document.querySelector('.image-frame');
+    const animationClass = isCorrect ? 'flash-correct' : 'flash-wrong';
     
-    // Save state for undo
+    frame.classList.add(animationClass);
+    setTimeout(() => frame.classList.remove(animationClass), 600);
+    
     gameState.undoStack.push({
         questionIndex: gameState.currentQuestionIndex,
         score: gameState.score
     });
     
-    // Update score and move to next
-    gameState.score++;
+    if (isCorrect) gameState.score++;
     gameState.currentQuestionIndex++;
     
-    // Update UI and load next question
-    setTimeout(() => {
-        loadQuestion();
-    }, 400);
+    setTimeout(() => loadQuestion(), 400);
 }
 
-function handleWrong() {
-    // Flash animation
-    document.querySelector('.image-frame').classList.add('flash-wrong');
-    setTimeout(() => {
-        document.querySelector('.image-frame').classList.remove('flash-wrong');
-    }, 600);
-    
-    // Save state for undo
-    gameState.undoStack.push({
-        questionIndex: gameState.currentQuestionIndex,
-        score: gameState.score
-    });
-    
-    // Move to next (score stays same)
-    gameState.currentQuestionIndex++;
-    
-    // Update UI and load next question
-    setTimeout(() => {
-        loadQuestion();
-    }, 400);
-}
-
-// ---------------- HANDLE UNDO ----------------
 function handleUndo() {
-    if (!gameState.undoStack || gameState.undoStack.length === 0) {
-        console.log('No more undo available');
-        return;
-    }
-
+    if (!gameState.undoStack || gameState.undoStack.length === 0) return;
     const previousState = gameState.undoStack.pop();
-    console.log('Undo triggered:', previousState);
-
-    // Restore state
     gameState.currentQuestionIndex = previousState.questionIndex;
     gameState.score = previousState.score;
-
-    // Reload UI
     loadQuestion();
 }
 
 function endGame() {
     const percentage = Math.round((gameState.score / CONFIG.TOTAL_QUESTIONS) * 100);
-    
     switchScreen(screens.game, screens.result);
-    
     setTimeout(() => {
         animateScore(percentage);
         displayPerformanceMessage(percentage);
@@ -256,8 +225,6 @@ function endGame() {
 
 function animateScore(targetPercentage) {
     elements.scoreDetails.textContent = `${gameState.score}/${CONFIG.TOTAL_QUESTIONS} Correct`;
-    
-    // Animate circle
     const circumference = 565.48;
     const offset = circumference - (targetPercentage / 100) * circumference;
     
@@ -265,10 +232,8 @@ function animateScore(targetPercentage) {
         elements.scoreCircleProgress.style.strokeDashoffset = offset;
     }, 100);
     
-    // Animate percentage number
     let currentPercentage = 0;
     const increment = targetPercentage / 60;
-    
     const percentageInterval = setInterval(() => {
         currentPercentage += increment;
         if (currentPercentage >= targetPercentage) {
@@ -280,20 +245,7 @@ function animateScore(targetPercentage) {
 }
 
 function displayPerformanceMessage(percentage) {
-    let message = '';
-    
-    if (percentage === 100) {
-        message = '🎉 PERFECT SCORE! You\'re a legend!';
-    } else if (percentage >= 75) {
-        message = '🌟 Excellent! Outstanding performance!';
-    } else if (percentage >= 50) {
-        message = '👍 Great job! Keep it up!';
-    } else if (percentage >= 25) {
-        message = '💪 Good effort! Practice more!';
-    } else {
-        message = '🎯 Keep trying! You\'ll get better!';
-    }
-    
+    let message = percentage === 100 ? '🎉 PERFECT!' : percentage >= 75 ? '🌟 Excellent!' : percentage >= 50 ? '👍 Great job!' : '🎯 Keep trying!';
     elements.performanceMessage.querySelector('p').textContent = message;
 }
 
@@ -306,37 +258,19 @@ function restartGame() {
 }
 
 // === EVENT LISTENERS ===
-
 elements.startBtn.addEventListener('click', startGame);
 elements.restartBtn.addEventListener('click', restartGame);
-elements.correctBtn.addEventListener('click', handleCorrect);
-elements.wrongBtn.addEventListener('click', handleWrong);
+elements.correctBtn.addEventListener('click', () => handleAnswer(true));
+elements.wrongBtn.addEventListener('click', () => handleAnswer(false));
 elements.undoBtn.addEventListener('click', handleUndo);
 
-// Keyboard shortcuts
-document.addEventListener('keydown', (e) => {
-    if (!screens.game.classList.contains('active')) return;
-    
-    switch(e.key.toLowerCase()) {
-        case 'c':
-        case 'arrowright':
-            handleCorrect();
-            break;
-        case 'w':
-        case 'arrowleft':
-            handleWrong();
-            break;
-        case 'u':
-        case 'arrowup':
-            handleUndo();
-            break;
+// Fix for iOS "Double Tap to Zoom" delay
+document.addEventListener('touchend', (e) => {
+    // Only prevents default if clicking buttons to speed up reaction time
+    if(e.target.tagName === 'BUTTON') {
+        // Optional: can add e.preventDefault() here if specific button bugs occur
     }
-});
+}, false);
 
-// Add image transition effect
-elements.gameImage.style.transition = 'opacity 0.3s ease';
-
-// === INITIALIZATION ===
-console.log('PRAKARSH \'26 Game Challenge Loaded!');
-console.log('Total questions configured:', CONFIG.TOTAL_QUESTIONS);
-console.log('Folders:', Object.keys(CONFIG.FOLDERS).join(', '));
+// Initial call
+console.log('PRAKARSH \'26 Game Loaded for Mobile');

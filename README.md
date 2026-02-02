@@ -1,6 +1,6 @@
 # PRAKARSH '26 - Game Challenge 🎮
 
-Yo! Welcome to the game challenge for Prakarsh '26. This is a simple quiz app we built where players guess the image shown on screen (Memes, Logos, or Dialogues).
+Yo! Welcome to the game challenge for Prakarsh '26. This is a simple quiz app I built where players guess the image shown on screen (Memes, Logos, or Dialogues).
 
 It's super lightweight and runs right in the browser.
 
